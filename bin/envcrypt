@@ -1,0 +1,62 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'envcrypt'
+require 'optparse'
+
+# CLI Commands with argument parsing
+options = {}
+command = nil
+
+UNENCRYPTED_FILE = '.env'.freeze
+ENCRYPTED_FILE = '.env.enc'.freeze
+
+opt_parser = OptionParser.new do |opts|
+  opts.banner = "Usage: envcrypt <command> [options]"
+
+  opts.separator ""
+  opts.separator "Commands:"
+  opts.separator "  encrypt [input_file] [output_file]  Encrypt .env file (default: #{UNENCRYPTED_FILE} to #{ENCRYPTED_FILE})"
+  opts.separator "  decrypt [file]                      Decrypt to stdout (default: #{ENCRYPTED_FILE})"
+  opts.separator "  edit [file]                         Edit encrypted file (default: #{ENCRYPTED_FILE})"
+
+  opts.separator ""
+  opts.separator "Options:"
+
+  opts.on("--key KEY", "Provide encryption key (instead of prompt)") do |key|
+    options[:key] = key
+  end
+
+  opts.on("-h", "--help", "Show this help message") do
+    puts opts
+    exit
+  end
+end
+
+# Parse global options first
+opt_parser.order!(ARGV)
+
+# Get the command
+command = ARGV.shift
+
+if command.nil?
+  puts opt_parser
+  exit 1
+end
+
+envcrypt = EnvCrypt.new
+
+case command
+when 'encrypt'
+  input_file = ARGV[0] || UNENCRYPTED_FILE
+  output_file = ARGV[1] || ENCRYPTED_FILE
+  envcrypt.encrypt_env(input_file, output_file, options[:key])
+when 'decrypt'
+  envcrypt.decrypt_env(ARGV[0] || ENCRYPTED_FILE, options[:key])
+when 'edit'
+  envcrypt.edit_env(ARGV[0] || ENCRYPTED_FILE, options[:key])
+else
+  puts "Unknown command: #{command}"
+  puts opt_parser
+  exit 1
+end
