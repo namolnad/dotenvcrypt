@@ -44,17 +44,17 @@ if command.nil?
   exit 1
 end
 
-envcrypt = EnvCrypt.new
+envcrypt = EnvCrypt.new(options[:key])
 
 case command
 when 'encrypt'
   input_file = ARGV[0] || UNENCRYPTED_FILE
   output_file = ARGV[1] || ENCRYPTED_FILE
-  envcrypt.encrypt_env(input_file, output_file, options[:key])
+  envcrypt.encrypt_env(input_file, output_file)
 when 'decrypt'
-  envcrypt.decrypt_env(ARGV[0] || ENCRYPTED_FILE, options[:key])
+  envcrypt.decrypt_env(ARGV[0] || ENCRYPTED_FILE)
 when 'edit'
-  envcrypt.edit_env(ARGV[0] || ENCRYPTED_FILE, options[:key])
+  envcrypt.edit_env(ARGV[0] || ENCRYPTED_FILE)
 else
   puts "Unknown command: #{command}"
   puts opt_parser

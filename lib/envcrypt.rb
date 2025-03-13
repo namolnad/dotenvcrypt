@@ -8,35 +8,38 @@ require 'tempfile'
 require 'optparse'
 
 class EnvCrypt
+  def initialize(encryption_key = nil)
+    @encryption_key = encryption_key
+  end
+
   # Encrypt an existing `.env` file
-  def encrypt_env(unencrypted_file, encrypted_file, key)
+  def encrypt_env(unencrypted_file, encrypted_file)
     unless File.exist?(unencrypted_file)
       puts "❌ File not found: #{unencrypted_file}"
       exit(1)
     end
 
-    encrypt(unencrypted_file, encrypted_file, key)
+    encrypt(unencrypted_file, encrypted_file)
 
     puts "🔒 Encrypted #{unencrypted_file} → #{encrypted_file}"
   end
 
   # Decrypt an encrypted `.env` file and print to stdout
-  def decrypt_env(encrypted_file, key)
-    puts decrypt(encrypted_file, key)
+  def decrypt_env(encrypted_file)
+    puts decrypt(encrypted_file)
   end
 
   # Edit decrypted env, then re-encrypt
-  def edit_env(encrypted_file, key)
-    key = fetch_key(key)
+  def edit_env(encrypted_file)
     temp_file = Tempfile.new('envcrypt')
 
     File.open(temp_file.path, 'w') do |f|
-      f.write decrypt(encrypted_file, key)
+      f.write decrypt(encrypted_file)
     end
 
     system("#{ENV['EDITOR'] || 'vim'} #{temp_file.path}")
 
-    encrypt(temp_file.path, encrypted_file, key)
+    encrypt(temp_file.path, encrypted_file)
 
     puts "🔒 Encrypted and saved #{encrypted_file}"
   ensure
@@ -45,17 +48,13 @@ class EnvCrypt
 
   private
 
-  # Get encryption key: From CLI arg OR securely prompt from stdin
-  def fetch_key(encryption_key = nil)
-    return encryption_key if encryption_key && !encryption_key.empty?
-    prompt.ask("Enter encryption key:", echo: false)
-  end
+  attr_reader :encryption_key
 
   # Encrypt file
-  def encrypt(input_file, output_file, key)
+  def encrypt(input_file, output_file)
     cipher = OpenSSL::Cipher::AES256.new(:CBC)
     cipher.encrypt
-    cipher.key = OpenSSL::Digest::SHA256.digest(fetch_key(key))
+    cipher.key = OpenSSL::Digest::SHA256.digest(fetch_key)
 
     # Generate a secure random IV (16 bytes for AES-256-CBC)
     iv = cipher.random_iv
@@ -70,7 +69,7 @@ class EnvCrypt
   end
 
   # Decrypt file
-  def decrypt(input_file, key)
+  def decrypt(input_file)
     # Read the encrypted file
     data = File.binread(input_file)
 
@@ -80,13 +79,20 @@ class EnvCrypt
 
     cipher = OpenSSL::Cipher::AES256.new(:CBC)
     cipher.decrypt
-    cipher.key = OpenSSL::Digest::SHA256.digest(fetch_key(key))
+    cipher.key = OpenSSL::Digest::SHA256.digest(fetch_key)
     cipher.iv = iv
 
     cipher.update(encrypted_data) + cipher.final
   rescue OpenSSL::Cipher::CipherError
     puts "❌ Decryption failed. Invalid key or corrupted file."
     exit(1)
+  end
+
+  # Get encryption key: From CLI arg OR encryption-key file OR securely prompt from stdin
+  def fetch_key
+    return encryption_key if encryption_key && !encryption_key.empty?
+
+    prompt.ask("Enter encryption key:", echo: false)
   end
 
   def prompt
