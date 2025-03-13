@@ -1,8 +1,9 @@
 # frozen_string_literal: true
+require_relative "lib/envcrypt/version"
 
 Gem::Specification.new do |spec|
   spec.name          = "envcrypt"
-  spec.version       = "0.2.0"
+  spec.version       = Envcrypt::VERSION
   spec.authors       = ["Dan Loman"]
   spec.email         = ["daniel.loman@gmail.com"]
 
