@@ -8,6 +8,17 @@ require 'tempfile'
 require 'optparse'
 
 class EnvCrypt
+  # Determine config directory following XDG Base Directory Specification
+  CONFIG_HOME = ENV['XDG_CONFIG_HOME'] || "#{ENV['HOME']}/.config"
+  CONFIG_DIR = "#{CONFIG_HOME}/envcrypt".freeze
+
+  # Check multiple locations in order of preference
+  ENCRYPTION_KEY_LOCATIONS = [
+    "#{Dir.pwd}/.envcrypt.key",                # Project-specific key (current directory)
+    "#{ENV['HOME']}/.envcrypt.key",            # Legacy location (for backward compatibility)
+    "#{CONFIG_DIR}/key"                        # XDG standard location
+  ].freeze
+
   def initialize(encryption_key = nil)
     @encryption_key = encryption_key
   end
@@ -91,6 +102,9 @@ class EnvCrypt
   # Get encryption key: From CLI arg OR encryption-key file OR securely prompt from stdin
   def fetch_key
     return encryption_key if encryption_key && !encryption_key.empty?
+    ENCRYPTION_KEY_LOCATIONS.each do |key_file|
+      return File.read(key_file).strip if File.exist?(key_file)
+    end
 
     prompt.ask("Enter encryption key:", echo: false)
   end
