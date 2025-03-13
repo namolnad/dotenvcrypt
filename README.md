@@ -1,4 +1,4 @@
-# EnvCrypt 🛡️🔐
+# envcrypt 🛡️🔐
 
 **Securely encrypt, manage, and load your `.env` files in public repositories.**
 
@@ -8,10 +8,10 @@
 
 ## 🚀 Features
 
-✅ Encrypt `.env` files into `.env.enc` for safe storage in Git.
-✅ Load environment variables securely into the shell.
-✅ Edit encrypted `.env.enc`, then re-encrypt after saving.
-✅ Pass encryption keys via CLI `--key` or interactive prompt.
+- ✅ Encrypt `.env` files into `.env.enc` for safe storage in Git.
+- ✅ Load environment variables securely into the shell.
+- ✅ Edit encrypted `.env.enc`, then re-encrypt after saving.
+- ✅ Pass encryption keys via CLI `--key`, `$XDG_CONFIG_HOME/envcrypt/secret.key`, or interactive prompt.
 
 ---
 

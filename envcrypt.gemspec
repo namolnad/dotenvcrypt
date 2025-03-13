@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["daniel.loman@gmail.com"]
 
   spec.summary       = "Securely encrypt, manage, and load your .env files in public repositories"
-  spec.description   = "EnvCrypt ensures your API keys are encrypted while keeping workflow simple"
+  spec.description   = "envcrypt ensures your API keys are encrypted while keeping workflow simple"
   spec.homepage      = "https://github.com/namolnad/envcrypt"
   spec.license       = "MIT"
   spec.required_ruby_version = Gem::Requirement.new(">= 2.5.0")
