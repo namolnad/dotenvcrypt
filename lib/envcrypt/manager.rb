@@ -103,6 +103,7 @@ module Envcrypt
     # Get encryption key: From CLI arg OR encryption-key file OR securely prompt from stdin
     def fetch_key
       return encryption_key if encryption_key && !encryption_key.empty?
+      return ENV['ENVCRYPT_KEY'] if ENV['ENVCYPT_KEY'] && !ENV['ENVCYPT_KEY'].empty?
       ENCRYPTION_KEY_LOCATIONS.each do |key_file|
         return File.read(key_file).strip if File.exist?(key_file)
       end
