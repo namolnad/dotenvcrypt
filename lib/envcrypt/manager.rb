@@ -16,8 +16,8 @@ module Envcrypt
     # Check multiple locations in order of preference
     ENCRYPTION_KEY_LOCATIONS = [
       "#{Dir.pwd}/.envcrypt.key",                # Project-specific key (current directory)
-      "#{ENV['HOME']}/.envcrypt.key",            # Legacy location (for backward compatibility)
-      "#{CONFIG_DIR}/secret.key"                 # XDG standard location
+      "#{CONFIG_DIR}/secret.key",                # XDG standard location
+      "#{ENV['HOME']}/.envcrypt.key"             # Legacy location (for backward compatibility)
     ].freeze
 
     def initialize(encryption_key = nil)

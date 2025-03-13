@@ -42,10 +42,11 @@ eval "$(envcrypt decrypt .env.enc)"
 
 ### Key Management
 
-EnvCrypt looks for your encryption key in these locations (in order):
+envcrypt looks for your encryption key in these locations (in order):
 
 1. Command line argument: `--key YOUR_SECRET_KEY`
 1. Environment variable: `ENVCRYPT_KEY`
+1. File: `./.envcrypt.key` (in the current directory)
 1. File: `$XDG_CONFIG_HOME/envcrypt/secret.key` (or `$HOME/.config/envcrypt/secret.key`)
 1. File: `$HOME/.envcrypt.key`
 1. Interactive prompt (if no key is found)
