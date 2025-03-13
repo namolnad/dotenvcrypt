@@ -44,7 +44,7 @@ if command.nil?
   exit 1
 end
 
-envcrypt = EnvCrypt.new(options[:key])
+envcrypt = Envcrypt::Manager.new(options[:key])
 
 case command
 when 'encrypt'
