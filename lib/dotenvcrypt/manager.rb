@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
-require 'openssl'
 require 'base64'
+require 'openssl'
+require 'tempfile'
 require 'tty-prompt'
 require 'tty-command'
-require 'tempfile'
-require 'optparse'
 require_relative 'encryptor'
 
 module Dotenvcrypt
