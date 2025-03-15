@@ -6,6 +6,7 @@ require 'tty-prompt'
 require 'tty-command'
 require 'tempfile'
 require 'optparse'
+require_relative 'encryptor'
 
 module Dotenvcrypt
   class Manager
@@ -22,6 +23,7 @@ module Dotenvcrypt
 
     def initialize(encryption_key = nil)
       @encryption_key = encryption_key
+      @encryptor = Encryptor.new(fetch_key)
     end
 
     # Encrypt an existing `.env` file
@@ -31,14 +33,16 @@ module Dotenvcrypt
         exit(1)
       end
 
-      encrypt(unencrypted_file, encrypted_file)
+      File.open(encrypted_file, 'w') do |f|
+        f.write encryptor.encrypt(File.read(unencrypted_file))
+      end
 
       puts "🔒 Encrypted #{unencrypted_file} → #{encrypted_file}"
     end
 
     # Decrypt an encrypted `.env` file and print to stdout
     def decrypt_env(encrypted_file)
-      puts decrypt(encrypted_file)
+      puts encryptor.decrypt(File.read(encrypted_file))
     end
 
     # Edit decrypted env, then re-encrypt
@@ -46,14 +50,16 @@ module Dotenvcrypt
       temp_file = Tempfile.new('dotenvcrypt')
 
       File.open(temp_file.path, 'w') do |f|
-        f.write decrypt(encrypted_file)
+        f.write encryptor.decrypt(File.read(encrypted_file))
       end
 
       puts "Waiting for file to be saved. Abort with Ctrl-C."
 
       system("#{ENV['EDITOR'] || 'vim'} #{temp_file.path}")
 
-      encrypt(temp_file.path, encrypted_file)
+      File.open(encrypted_file, 'w') do |f|
+        f.write encryptor.encrypt(File.read(temp_file.path))
+      end
 
       puts "🔒 Encrypted and saved #{encrypted_file}"
     ensure
@@ -62,68 +68,7 @@ module Dotenvcrypt
 
     private
 
-    attr_reader :encryption_key
-
-    # Encrypt file
-    def encrypt(input_file, output_file)
-      cipher = OpenSSL::Cipher::AES256.new(:GCM)
-      cipher.encrypt
-      key = OpenSSL::Digest::SHA256.digest(fetch_key)
-      cipher.key = key
-
-      # Generate a secure random IV (12 bytes is recommended for GCM)
-      iv = cipher.random_iv
-
-      data = File.read(input_file)
-      encrypted = cipher.update(data) + cipher.final
-
-      # Get the authentication tag (16 bytes)
-      auth_tag = cipher.auth_tag
-
-      # Combine IV, encrypted data, and auth tag
-      combined = iv + auth_tag + encrypted
-
-      # Convert to base64 for readability
-      base64_data = Base64.strict_encode64(combined)
-
-      File.open(output_file, 'w') do |f|
-        f.write(base64_data)
-      end
-    end
-
-    # Decrypt file
-    def decrypt(input_file)
-      # Read the encrypted file
-      begin
-        base64_data = File.read(input_file)
-        data = Base64.strict_decode64(base64_data)
-      rescue ArgumentError
-        puts "❌ Decryption failed. File is not in valid base64 format."
-        exit(1)
-      end
-
-      # For GCM mode:
-      # - IV is 12 bytes
-      # - Auth tag is 16 bytes
-      iv_size = 12
-      auth_tag_size = 16
-
-      # Extract the components
-      iv = data[0...iv_size]
-      auth_tag = data[iv_size...(iv_size + auth_tag_size)]
-      encrypted_data = data[(iv_size + auth_tag_size)..-1]
-
-      cipher = OpenSSL::Cipher::AES256.new(:GCM)
-      cipher.decrypt
-      cipher.key = OpenSSL::Digest::SHA256.digest(fetch_key)
-      cipher.iv = iv
-      cipher.auth_tag = auth_tag
-
-      cipher.update(encrypted_data) + cipher.final
-    rescue OpenSSL::Cipher::CipherError
-      puts "❌ Decryption failed. Invalid key, corrupted file, or tampering detected."
-      exit(1)
-    end
+    attr_reader :encryption_key, :encryptor
 
     # Get encryption key: From CLI arg OR encryption-key file OR securely prompt from stdin
     def fetch_key
