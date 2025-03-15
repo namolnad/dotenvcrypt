@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["daniel.loman@gmail.com"]
 
   spec.summary       = "Securely encrypt, manage, and store your .env files in Git"
-  spec.description   = "dotenvcrypt ensures any API keys in your .env files are encrypted - enabling storage of these files directly within Git."
+  spec.description   = "dotenvcrypt ensures your .env files - and, by extension, any secrets within them - are encrypted, enabling storage of these files directly within Git."
   spec.homepage      = "https://github.com/namolnad/dotenvcrypt"
   spec.license       = "MIT"
   spec.required_ruby_version = Gem::Requirement.new(">= 2.5.0")
