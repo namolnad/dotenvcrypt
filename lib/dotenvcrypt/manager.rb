@@ -48,16 +48,22 @@ module Dotenvcrypt
     def edit_file(encrypted_file)
       temp_file = Tempfile.new('dotenvcrypt')
 
+      original_content = encryptor.decrypt(File.read(encrypted_file))
+
       File.open(temp_file.path, 'w') do |f|
-        f.write encryptor.decrypt(File.read(encrypted_file))
+        f.write original_content
       end
 
       puts "Waiting for file to be saved. Abort with Ctrl-C."
 
       system("#{ENV['EDITOR'] || 'vim'} #{temp_file.path}")
 
-      File.open(encrypted_file, 'w') do |f|
-        f.write encryptor.encrypt(File.read(temp_file.path))
+      updated_content = File.read(temp_file.path)
+
+      if updated_content != original_content
+        File.open(encrypted_file, 'w') do |f|
+          f.write encryptor.encrypt(updated_content)
+        end
       end
 
       puts "🔒 Encrypted and saved #{encrypted_file}"
