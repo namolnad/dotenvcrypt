@@ -78,11 +78,7 @@ module Dotenvcrypt
         return File.read(key_file).strip if File.exist?(key_file)
       end
 
-      prompt.ask("Enter encryption key:", echo: false)
-    end
-
-    def prompt
-      @prompt ||= TTY::Prompt.new
+      TTY::Prompt.new.ask("Enter encryption key:", echo: false)
     end
   end
 end
