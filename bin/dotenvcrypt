@@ -23,7 +23,7 @@ opt_parser = OptionParser.new do |opts|
   opts.separator ""
   opts.separator "Options:"
 
-  opts.on("--key KEY", "Provide encryption key (instead of prompt)") do |key|
+  opts.on("-k", "--key KEY", "Encryption key") do |key|
     options[:key] = key
   end
 
