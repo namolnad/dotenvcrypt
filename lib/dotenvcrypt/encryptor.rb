@@ -27,10 +27,9 @@ module Dotenvcrypt
     end
 
     # Decrypt file
-    def decrypt(base64_data)
-      # Read the encrypted file
+    def decrypt(encoded_data)
       begin
-        data = Base64.strict_decode64(base64_data)
+        data = Base64.strict_decode64(encoded_data)
       rescue ArgumentError
         puts "❌ Decryption failed. File is not in valid base64 format."
         exit(1)
