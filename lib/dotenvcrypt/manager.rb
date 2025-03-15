@@ -7,17 +7,17 @@ require 'tty-command'
 require 'tempfile'
 require 'optparse'
 
-module Envcrypt
+module Dotenvcrypt
   class Manager
     # Determine config directory following XDG Base Directory Specification
     CONFIG_HOME = ENV['XDG_CONFIG_HOME'] || "#{ENV['HOME']}/.config"
-    CONFIG_DIR = "#{CONFIG_HOME}/envcrypt".freeze
+    CONFIG_DIR = "#{CONFIG_HOME}/dotenvcrypt".freeze
 
     # Check multiple locations in order of preference
     ENCRYPTION_KEY_LOCATIONS = [
-      "#{Dir.pwd}/.envcrypt.key",                # Project-specific key (current directory)
+      "#{Dir.pwd}/.dotenvcrypt.key",             # Project-specific key (current directory)
       "#{CONFIG_DIR}/secret.key",                # XDG standard location
-      "#{ENV['HOME']}/.envcrypt.key"             # Legacy location (for backward compatibility)
+      "#{ENV['HOME']}/.dotenvcrypt.key"          # Legacy location (for backward compatibility)
     ].freeze
 
     def initialize(encryption_key = nil)
@@ -43,7 +43,7 @@ module Envcrypt
 
     # Edit decrypted env, then re-encrypt
     def edit_env(encrypted_file)
-      temp_file = Tempfile.new('envcrypt')
+      temp_file = Tempfile.new('dotenvcrypt')
 
       File.open(temp_file.path, 'w') do |f|
         f.write decrypt(encrypted_file)
@@ -103,7 +103,7 @@ module Envcrypt
     # Get encryption key: From CLI arg OR encryption-key file OR securely prompt from stdin
     def fetch_key
       return encryption_key if encryption_key && !encryption_key.empty?
-      return ENV['ENVCRYPT_KEY'] if ENV['ENVCYPT_KEY'] && !ENV['ENVCYPT_KEY'].empty?
+      return ENV['DOTENVCRYPT_KEY'] if ENV['DOTENVCRYPT_KEY'] && !ENV['DOTENVCRYPT_KEY'].empty?
       ENCRYPTION_KEY_LOCATIONS.each do |key_file|
         return File.read(key_file).strip if File.exist?(key_file)
       end

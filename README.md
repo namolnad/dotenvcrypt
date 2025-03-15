@@ -1,8 +1,8 @@
-# envcrypt 🛡️🔐
+# dotenvcrypt 🛡️🔐
 
 **Securely encrypt, manage, and load your `.env` files in public repositories.**
 
-> Inspired by `rails credentials`, `envcrypt` ensures your API keys and other `.env` secrets are encrypted while keeping your workflow simple.
+> Inspired by `rails credentials`, `dotenvcrypt` ensures your API keys and other `.env` secrets are encrypted while keeping your workflow simple.
 
 ---
 
@@ -19,7 +19,7 @@
 ### Using Homebrew (recommended)
 
 ```bash
-brew install namolnad/formulae/envcrypt
+brew install namolnad/formulae/dotenvcrypt
 ```
 
 ## 🔧 Usage
@@ -28,27 +28,27 @@ brew install namolnad/formulae/envcrypt
 
 ```bash
 # Encrypt a .env file
-envcrypt encrypt .env .env.enc
+dotenvcrypt encrypt .env .env.enc
 
 # Decrypt an encrypted file
-envcrypt decrypt .env.enc
+dotenvcrypt decrypt .env.enc
 
 # Edit an encrypted file (decrypts, opens editor, re-encrypts)
-envcrypt edit .env.enc
+dotenvcrypt edit .env.enc
 
 # Load encrypted environment variables into your shell
-eval "$(envcrypt decrypt .env.enc)"
+eval "$(dotenvcrypt decrypt .env.enc)"
 ```
 
 ### Key Management
 
-envcrypt looks for your encryption key in these locations (in order):
+dotenvcrypt looks for your encryption key in these locations (in order):
 
 1. Command line argument: `--key YOUR_SECRET_KEY`
-1. Environment variable: `ENVCRYPT_KEY`
-1. File: `./.envcrypt.key` (in the current directory)
-1. File: `$XDG_CONFIG_HOME/envcrypt/secret.key` (or `$HOME/.config/envcrypt/secret.key`)
-1. File: `$HOME/.envcrypt.key`
+1. Environment variable: `DOTENVCRYPT_KEY`
+1. File: `./.dotenvcrypt.key` (in the current directory)
+1. File: `$XDG_CONFIG_HOME/dotenvcrypt/secret.key` (or `$HOME/.config/dotenvcrypt/secret.key`)
+1. File: `$HOME/.dotenvcrypt.key`
 1. Interactive prompt (if no key is found)
 
 ### Real-World Example
@@ -57,18 +57,18 @@ Add this to your shell profile (`.zshrc`, `.bashrc`, etc.) to automatically load
 
 ```bash
 # Set up encryption key (example using 1Password CLI)
-envcrypt_key_path="$XDG_CONFIG_HOME/envcrypt/secret.key"
-if [[ ! -f $envcrypt_key_path ]]; then
-  mkdir -p $(dirname $envcrypt_key_path)
+dotenvcrypt_key_path="$XDG_CONFIG_HOME/dotenvcrypt/secret.key"
+if [[ ! -f $dotenvcrypt_key_path || ! -s $dotenvcrypt_key_path ]]; then
+  mkdir -p $(dirname $dotenvcrypt_key_path)
   # Replace with your preferred key storage method
-  echo $(op item get your-item-reference --fields password) > $envcrypt_key_path
-  chmod 600 $envcrypt_key_path
+  (op item get your-item-reference --fields password) > $dotenvcrypt_key_path
+  chmod 600 $dotenvcrypt_key_path
 fi
 
 # Load encrypted environment variables if envcrypt is installed
-if command -v envcrypt &> /dev/null; then
+if command -v dotenvcrypt &> /dev/null; then
   set -a  # automatically export all variables
-  eval "$(envcrypt decrypt $HOME/.env.enc)"
+  eval "$(dotenvcrypt decrypt $HOME/.env.enc)"
   set +a  # stop automatically exporting
 fi
 ```
