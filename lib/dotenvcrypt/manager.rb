@@ -49,6 +49,8 @@ module Dotenvcrypt
         f.write decrypt(encrypted_file)
       end
 
+      puts "Waiting for file to be saved. Abort with Ctrl-C."
+
       system("#{ENV['EDITOR'] || 'vim'} #{temp_file.path}")
 
       encrypt(temp_file.path, encrypted_file)
@@ -64,39 +66,62 @@ module Dotenvcrypt
 
     # Encrypt file
     def encrypt(input_file, output_file)
-      cipher = OpenSSL::Cipher::AES256.new(:CBC)
+      cipher = OpenSSL::Cipher::AES256.new(:GCM)
       cipher.encrypt
-      cipher.key = OpenSSL::Digest::SHA256.digest(fetch_key)
+      key = OpenSSL::Digest::SHA256.digest(fetch_key)
+      cipher.key = key
 
-      # Generate a secure random IV (16 bytes for AES-256-CBC)
+      # Generate a secure random IV (12 bytes is recommended for GCM)
       iv = cipher.random_iv
 
       data = File.read(input_file)
       encrypted = cipher.update(data) + cipher.final
 
-      File.open(output_file, 'wb') do |f|
-        f.write(iv)
-        f.write(encrypted)
+      # Get the authentication tag (16 bytes)
+      auth_tag = cipher.auth_tag
+
+      # Combine IV, encrypted data, and auth tag
+      combined = iv + auth_tag + encrypted
+
+      # Convert to base64 for readability
+      base64_data = Base64.strict_encode64(combined)
+
+      File.open(output_file, 'w') do |f|
+        f.write(base64_data)
       end
     end
 
     # Decrypt file
     def decrypt(input_file)
       # Read the encrypted file
-      data = File.binread(input_file)
+      begin
+        base64_data = File.read(input_file)
+        data = Base64.strict_decode64(base64_data)
+      rescue ArgumentError
+        puts "❌ Decryption failed. File is not in valid base64 format."
+        exit(1)
+      end
 
-      # Extract the IV from the first 16 bytes
-      iv = data[0...16]
-      encrypted_data = data[16..-1]
+      # For GCM mode:
+      # - IV is 12 bytes
+      # - Auth tag is 16 bytes
+      iv_size = 12
+      auth_tag_size = 16
 
-      cipher = OpenSSL::Cipher::AES256.new(:CBC)
+      # Extract the components
+      iv = data[0...iv_size]
+      auth_tag = data[iv_size...(iv_size + auth_tag_size)]
+      encrypted_data = data[(iv_size + auth_tag_size)..-1]
+
+      cipher = OpenSSL::Cipher::AES256.new(:GCM)
       cipher.decrypt
       cipher.key = OpenSSL::Digest::SHA256.digest(fetch_key)
       cipher.iv = iv
+      cipher.auth_tag = auth_tag
 
       cipher.update(encrypted_data) + cipher.final
     rescue OpenSSL::Cipher::CipherError
-      puts "❌ Decryption failed. Invalid key or corrupted file."
+      puts "❌ Decryption failed. Invalid key, corrupted file, or tampering detected."
       exit(1)
     end
 
