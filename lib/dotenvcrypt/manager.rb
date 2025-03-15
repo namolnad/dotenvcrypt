@@ -27,7 +27,7 @@ module Dotenvcrypt
     end
 
     # Encrypt an existing `.env` file
-    def encrypt_env(unencrypted_file, encrypted_file)
+    def encrypt_file(unencrypted_file, encrypted_file)
       unless File.exist?(unencrypted_file)
         puts "❌ File not found: #{unencrypted_file}"
         exit(1)
@@ -41,12 +41,12 @@ module Dotenvcrypt
     end
 
     # Decrypt an encrypted `.env` file and print to stdout
-    def decrypt_env(encrypted_file)
+    def decrypt_file(encrypted_file)
       puts encryptor.decrypt(File.read(encrypted_file))
     end
 
     # Edit decrypted env, then re-encrypt
-    def edit_env(encrypted_file)
+    def edit_file(encrypted_file)
       temp_file = Tempfile.new('dotenvcrypt')
 
       File.open(temp_file.path, 'w') do |f|

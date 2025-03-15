@@ -55,11 +55,11 @@ case command
 when 'encrypt'
   input_file = ARGV[0] || UNENCRYPTED_FILE
   output_file = ARGV[1] || ENCRYPTED_FILE
-  dotenvcrypt.encrypt_env(input_file, output_file)
+  dotenvcrypt.encrypt_file(input_file, output_file)
 when 'decrypt'
-  dotenvcrypt.decrypt_env(ARGV[0] || ENCRYPTED_FILE)
+  dotenvcrypt.decrypt_file(ARGV[0] || ENCRYPTED_FILE)
 when 'edit'
-  dotenvcrypt.edit_env(ARGV[0] || ENCRYPTED_FILE)
+  dotenvcrypt.edit_file(ARGV[0] || ENCRYPTED_FILE)
 else
   puts "Unknown command: #{command}"
   puts opt_parser
