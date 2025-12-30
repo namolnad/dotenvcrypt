@@ -1,0 +1,69 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'dotenvcrypt'
+require 'optparse'
+
+# CLI Commands with argument parsing
+options = {}
+command = nil
+
+UNENCRYPTED_FILE = '.env'.freeze
+ENCRYPTED_FILE = '.env.enc'.freeze
+
+opt_parser = OptionParser.new do |opts|
+  opts.banner = "Usage: dotenvcrypt <command> [options]"
+
+  opts.separator ""
+  opts.separator "Commands:"
+  opts.separator "  encrypt [input_file] [output_file]  Encrypt .env file (default: #{UNENCRYPTED_FILE} to #{ENCRYPTED_FILE})"
+  opts.separator "  decrypt [file]                      Decrypt to stdout (default: #{ENCRYPTED_FILE})"
+  opts.separator "  edit [file]                         Edit encrypted file (default: #{ENCRYPTED_FILE})"
+
+  opts.separator ""
+  opts.separator "Options:"
+
+  opts.on("-k", "--key KEY", "Encryption key") do |key|
+    options[:key] = key
+  end
+
+  opts.on("-h", "--help", "Show this help message") do
+    puts opts
+    exit
+  end
+
+  opts.on("-v", "--version", "Show version") do
+    puts Dotenvcrypt::VERSION
+    exit
+  end
+end
+
+# Parse global options first
+opt_parser.order!(ARGV)
+
+# Get the command
+command = ARGV.shift
+
+if command.nil?
+  puts opt_parser
+  exit 1
+end
+
+# Fetch encryption key
+key = Dotenvcrypt::CLI::KeyManager.fetch_key(options[:key])
+commands = Dotenvcrypt::CLI::Commands.new(key: key)
+
+case command
+when 'encrypt'
+  input_file = ARGV[0] || UNENCRYPTED_FILE
+  output_file = ARGV[1] || ENCRYPTED_FILE
+  commands.encrypt_file(input_file, output_file)
+when 'decrypt'
+  commands.decrypt_file(ARGV[0] || ENCRYPTED_FILE)
+when 'edit'
+  commands.edit_file(ARGV[0] || ENCRYPTED_FILE)
+else
+  puts "Unknown command: #{command}"
+  puts opt_parser
+  exit 1
+end
